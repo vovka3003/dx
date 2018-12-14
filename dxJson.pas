@@ -110,23 +110,29 @@ my_unit =
 
 var ScriptEngine:variant;
 
-// Запускает движок JScript
-function CreateSE();
+// Создает и возвращает движок JScript
+
+function CreateSE:variant;
 begin
   try
     ScriptEngine := CreateOleObject('MSScriptControl.ScriptControl');
     ScriptEngine.Language := 'JScript';
     ScriptEngine.Reset;
     ScriptEngine.AddCode(json2js_unit + my_unit );
+    result := ScriptEngine;
   except
-    debug('ScriptEngine:')
+    debug('CreateSE:')
     debug(ExceptionParam)
   end;
 end;
 
-// Останавливает движок
-procedure DestroyScriptEngine;
-begin ScriptEngine:=Unassigned; end;
+// Уничтожает движок
+
+procedure FreeSE(SE:variant);
+begin
+SE:=Unassigned;
+end;
+
 
 {*******************************************************************************
 *                               HTTP Запросы                                   *
@@ -134,18 +140,33 @@ begin ScriptEngine:=Unassigned; end;
 
 // Загружает содержимое из интернет по запрашиваемому url
 function xhr(url:string):string;
-begin result:=ScriptEngine.Run('xhr',url); end;
+  var SE:variant;
+begin
+  SE:=CreateSE;
+  result:=SE.Run('xhr',url);
+  FreeSE(SE);
+end;
 
 {*******************************************************************************
 *                                  Парсинг                                     *
 *******************************************************************************}
 // Возвращает объявление JSON из движка js в ps.
 function JSON:variant;
-begin result:=ScriptEngine.Run('Json'); end;
+  var SE:variant;
+begin
+  SE:=CreateSE;
+  result:=SE.Run('Json');
+  FreeSe(SE);
+end;
 
 // Возвращает элемент массива
 function aGet(JsonArray:variant;Index:integer):variant;
-begin result:=ScriptEngine.Run('aGet',JsonArray,Index); end;
+  var SE:variant;
+begin
+  SE:=CreateSE;
+  result:=ScriptEnSEgine.Run('aGet',JsonArray,Index);
+  FreeSE(SE);
+end;
 
 // Возвращает ключ пары по индексу
 function oKey(JsonObject:variant;Index:integer):variant;
